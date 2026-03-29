@@ -2,11 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/database';
 import logger from '../config/logger';
 import { setRequestUserId } from './requestContext';
+import * as Sentry from '@sentry/node';
+
+export type UserRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
+    role: UserRole;
   };
 }
 
@@ -52,11 +56,18 @@ export async function authenticate(
     }
 
     // Attach user to request and propagate to log context
+    const rawRole = user.user_metadata?.role ?? 'member';
+    const validRoles: UserRole[] = ['owner', 'admin', 'member', 'viewer'];
+    const role: UserRole = validRoles.includes(rawRole) ? rawRole : 'member';
+
     req.user = {
       id: user.id,
       email: user.email || '',
+      role,
     };
     setRequestUserId(user.id);
+    Sentry.setUser({ id: user.id, email: user.email });
+
 
     next();
   } catch (error) {
@@ -90,12 +101,18 @@ export async function optionalAuthenticate(
     if (token) {
       const { data: { user }, error } = await supabase.auth.getUser(token);
       if (!error && user) {
+        const rawRole = user.user_metadata?.role ?? 'member';
+        const validRoles: UserRole[] = ['owner', 'admin', 'member', 'viewer'];
+        const role: UserRole = validRoles.includes(rawRole) ? rawRole : 'member';
         req.user = {
           id: user.id,
           email: user.email || '',
+          role,
         };
         setRequestUserId(user.id);
+        Sentry.setUser({ id: user.id, email: user.email });
       }
+
     }
 
     next();

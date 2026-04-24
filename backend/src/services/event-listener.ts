@@ -47,6 +47,7 @@ export class EventListener {
   private rpcUrl: string;
   private lastProcessedLedger: number = 0;
   private isRunning: boolean = false;
+  private activeRequestController: AbortController | null = null;
 
   // Configurable via env var — defaults to 5 seconds
   private readonly pollInterval: number = parseInt(
@@ -110,6 +111,7 @@ export class EventListener {
 
   stop() {
     this.isRunning = false;
+    this.abortActiveRequest();
     if (this._status !== 'disabled') {
       this._status = 'stopped';
     }
@@ -259,22 +261,28 @@ private async fetchAndProcessEvents() {
 
 
   private async fetchEvents(fromLedger: number): Promise<ContractEvent[]> {
-    const response = await fetch(this.rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getEvents',
-        params: {
-          startLedger: fromLedger,
-          filters: [{ contractIds: [this.contractId] }],
-        },
-      }),
-    });
+    const requestController = this.beginRequest();
+    try {
+      const response = await fetch(this.rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getEvents',
+          params: {
+            startLedger: fromLedger,
+            filters: [{ contractIds: [this.contractId] }],
+          },
+        }),
+        signal: requestController.signal,
+      });
 
-    const data: any = await response.json();
-    return data.result?.events || [];
+      const data: any = await response.json();
+      return data.result?.events || [];
+    } finally {
+      this.endRequest(requestController);
+    }
   }
 
   private async processEvents(events: ContractEvent[]): Promise<ProcessedEvent[]> {
@@ -606,18 +614,42 @@ private async fetchAndProcessEvents() {
   }
 
   private async getCurrentLedger(): Promise<number> {
-    const response = await fetch(this.rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getLatestLedger',
-      }),
-    });
+    const requestController = this.beginRequest();
+    try {
+      const response = await fetch(this.rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getLatestLedger',
+        }),
+        signal: requestController.signal,
+      });
 
-    const data: any = await response.json();
-    return data.result?.sequence || 0;
+      const data: any = await response.json();
+      return data.result?.sequence || 0;
+    } finally {
+      this.endRequest(requestController);
+    }
+  }
+
+  private beginRequest(): AbortController {
+    const controller = new AbortController();
+    this.activeRequestController = controller;
+    return controller;
+  }
+
+  private endRequest(controller: AbortController): void {
+    if (this.activeRequestController === controller) {
+      this.activeRequestController = null;
+    }
+  }
+
+  private abortActiveRequest(): void {
+    if (!this.activeRequestController) return;
+    this.activeRequestController.abort();
+    this.activeRequestController = null;
   }
 
   private sleep(ms: number): Promise<void> {

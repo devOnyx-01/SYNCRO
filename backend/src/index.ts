@@ -34,6 +34,7 @@ import webhookRoutes from './routes/webhooks';
 import complianceRoutes from './routes/compliance';
 import tagsRoutes from './routes/tags';
 import userRoutes from './routes/user';
+import userPreferencesRoutes from './routes/user-preferences';
 import apiKeysRoutes from './routes/api-keys';
 import digestRoutes from './routes/digest';
 import mfaRoutes from './routes/mfa';
@@ -128,6 +129,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/compliance', complianceRoutes);
 app.use('/api/tags', tagsRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/user-preferences', authenticate, userPreferencesRoutes);
 app.use('/api/digest', digestRoutes);
 app.use('/api/mfa', mfaRoutes);
 app.use('/api/notifications/push', pushNotificationRoutes);
@@ -212,6 +214,16 @@ app.post('/api/reminders/retry', createAdminLimiter(), adminAuth, async (req, re
   } catch (error) {
     logger.error('Error processing retries:', error);
     res.status(500).json({ success: false, error: 'Failed to process retries' });
+  }
+});
+
+app.post('/api/reminders/delayed', createAdminLimiter(), adminAuth, async (req, res) => {
+  try {
+    await reminderEngine.processDelayedNotifications();
+    res.json({ success: true, message: 'Delayed notifications processed' });
+  } catch (error) {
+    logger.error('Error processing delayed notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to process delayed notifications' });
   }
 });
 

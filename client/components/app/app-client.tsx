@@ -18,6 +18,7 @@ import ManageSubscriptionModal from "@/components/modals/manage-subscription-mod
 import InsightsModal from "@/components/modals/insights-modal";
 import InsightsPage from "@/components/pages/insights";
 import EditSubscriptionModal from "@/components/modals/edit-subscription-modal";
+import { OnboardingTourEnhanced, useOnboardingTourEnhanced } from "@/components/onboarding-tour-enhanced";
 import { Toast, ToastContainer } from "@/components/ui/toast";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -107,6 +108,7 @@ export function AppClient({
     const auth = useAuth();
     const { toasts, showToast, removeToast } = useToast();
     const { confirmDialog, showDialog, hideDialog } = useConfirmationDialog();
+    const { shouldShowTour, completeTour, skipTour } = useOnboardingTourEnhanced();
 
     const {
         subscriptions,
@@ -642,6 +644,29 @@ export function AppClient({
                     </>
                 )}
             </AppLayout>
+
+            {/* Onboarding Tour */}
+            {shouldShowTour && mode === "individual" && (
+                <OnboardingTourEnhanced
+                    darkMode={darkMode}
+                    onComplete={() => {
+                        completeTour();
+                        showToast({
+                            title: "Welcome to SYNCRO!",
+                            description: "You're all set up. Start adding your subscriptions to get the most out of the platform.",
+                            variant: "success",
+                        });
+                    }}
+                    onSkip={() => {
+                        skipTour();
+                        showToast({
+                            title: "Tour skipped",
+                            description: "You can restart the tour anytime from Settings.",
+                            variant: "default",
+                        });
+                    }}
+                />
+            )}
 
             {/* Notifications Panel */}
             {showNotifications && (

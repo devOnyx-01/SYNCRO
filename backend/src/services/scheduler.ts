@@ -55,6 +55,18 @@ export class SchedulerService {
       }),
     );
 
+    // ── Every 15 minutes: process delayed notifications ───────────────────
+    this.jobs.push(
+      cron.schedule('*/15 * * * *', async () => {
+        logger.info('Running delayed notification processing');
+        try {
+          await reminderEngine.processDelayedNotifications();
+        } catch (error) {
+          logger.error('Error in delayed notification processing:', error);
+        }
+      }),
+    );
+
     // ── Daily at 2 AM UTC: risk recalculation ────────────────────────────
     this.jobs.push(
       cron.schedule('0 2 * * *', async () => {

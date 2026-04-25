@@ -101,6 +101,7 @@ export function Header({
                 {activeView === "subscriptions" && onAddSubscription && (
                     <button
                         onClick={onAddSubscription}
+                        data-tour="add-subscription"
                         className={`flex items-center gap-2 ${
                             darkMode
                                 ? "bg-[#FFD166] text-[#1E2A35] hover:bg-[#FFD166]/90"

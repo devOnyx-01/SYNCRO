@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import EmptyStateExperience from "./empty-state-experience"
+import { createSubscription } from "@/lib/supabase/subscriptions"
 
 interface Subscription {
   id: string
@@ -38,11 +40,40 @@ export default function DashboardClient({
   initialProfile,
   user,
 }: DashboardClientProps) {
-  const [subscriptions] = useState(initialSubscriptions)
+  const [subscriptions, setSubscriptions] = useState(initialSubscriptions)
   const [notifications] = useState(initialNotifications)
   // initialEmailAccounts reserved for future email account display
   const [gdprLoading, setGdprLoading] = useState<"export" | "delete" | null>(null)
   const [gdprMessage, setGdprMessage] = useState<string | null>(null)
+
+  const handleAddSubscription = async (subscriptionData: any) => {
+    try {
+      const newSubscription = await createSubscription({
+        name: subscriptionData.name,
+        category: subscriptionData.category,
+        price: subscriptionData.price,
+        icon: subscriptionData.icon || "🔗",
+        color: subscriptionData.color || "#000000",
+        renews_in: 30,
+        status: "active",
+        renewal_url: subscriptionData.renewal_url || null,
+        tags: subscriptionData.tags || [],
+        date_added: new Date().toISOString(),
+        billing_cycle: subscriptionData.billing_cycle || "monthly",
+        source: "manual",
+        manually_edited: false,
+        edited_fields: [],
+        pricing_type: "fixed",
+        is_trial: false,
+        credit_card_required: false,
+        email_account_id: null,
+      })
+      
+      setSubscriptions(prev => [newSubscription, ...prev])
+    } catch (error) {
+      console.error("Error adding subscription:", error)
+    }
+  }
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -133,9 +164,10 @@ export default function DashboardClient({
           </div>
 
           {subscriptions.length === 0 ? (
-            <p className="px-4 sm:px-6 py-8 text-sm text-gray-500 text-center">
-              No subscriptions yet.
-            </p>
+            <EmptyStateExperience 
+              onAddSubscription={handleAddSubscription}
+              darkMode={false}
+            />
           ) : (
             <>
               {/* Desktop table — hidden on mobile */}

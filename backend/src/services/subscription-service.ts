@@ -2,6 +2,8 @@ import { supabase } from "../config/database";
 import { blockchainService } from "./blockchain-service";
 import { renewalCooldownService } from "./renewal-cooldown-service";
 import { analyticsService } from "./analytics-service";
+import { webhookService } from "./webhook-service";
+import { referralService } from "./referral-service";
 import logger from "../config/logger";
 import { DatabaseTransaction } from "../utils/transaction";
 import SERVICE_CATEGORIES from "../../services/service-categories";
@@ -97,6 +99,11 @@ export class SubscriptionService {
         // Trigger budget check (don't let it block response)
         analyticsService.checkBudgetThreshold(userId).catch(e => 
           logger.error('Background budget check failed:', e)
+        );
+
+        // Trigger referral conversion on first subscription (non-blocking)
+        referralService.markConverted(userId).catch(e =>
+          logger.error('Background referral conversion check failed:', e)
         );
 
         return {

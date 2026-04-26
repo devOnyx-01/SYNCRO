@@ -29,6 +29,7 @@ import type { Subscription as DBSubscription } from "@/lib/supabase/subscription
 import { createSubscription } from "@/lib/supabase/subscriptions";
 import { isOnline } from "@/lib/network-utils";
 import type { Currency } from "@/lib/currency-utils";
+import type { DetectedSubscription } from "@/lib/notification-types";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirmationDialog } from "@/hooks/use-confirmation-dialog";
@@ -469,7 +470,7 @@ function AppContent({
         });
     };
 
-    const handleAddFromNotification = (subscription: any) => {
+    const handleAddFromNotification = (subscription: DetectedSubscription) => {
         if (checkDuplicate(subscriptions, subscription.name)) {
             alert(`${subscription.name} already exists in your subscriptions!`);
             return;

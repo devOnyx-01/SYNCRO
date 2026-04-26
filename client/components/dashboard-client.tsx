@@ -1,28 +1,58 @@
 "use client"
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
-import EmptyStateExperience from "./empty-state-experience"
-import { createSubscription } from "@/lib/supabase/subscriptions"
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import EmptyStateExperience from "./empty-state-experience";
+import { createSubscription } from "@/lib/supabase/subscriptions";
 
 interface Subscription {
-  id: string
-  name: string
-  price: number
-  status: string
-  billing_cycle: string
-  next_renewal: string
-  category: string
+  id: string;
+  name: string;
+  price: number;
+  status: string;
+  billing_cycle: string;
+  next_renewal: string;
+  category: string;
+}
+
+interface EmailAccount {
+  id: string;
+  email: string;
+  provider: string;
+  connected_at: string;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
 }
 
 interface DashboardClientProps {
-  initialSubscriptions: Subscription[]
-  initialEmailAccounts: any[]
-  initialTeamMembers: any[]
-  initialNotifications: any[]
-  initialProfile: any
-  user: User
+  initialSubscriptions: Subscription[];
+  initialEmailAccounts: EmailAccount[];
+  initialTeamMembers: TeamMember[];
+  initialNotifications: Notification[];
+  initialProfile: Profile;
+  user: User;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -69,7 +99,7 @@ export default function DashboardClient({
         email_account_id: null,
       })
       
-      setSubscriptions(prev => [newSubscription, ...prev])
+      setSubscriptions((prev: Subscription[]) => [newSubscription, ...prev])
     } catch (error) {
       console.error("Error adding subscription:", error)
     }
@@ -146,7 +176,7 @@ export default function DashboardClient({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "Subscriptions", value: subscriptions.length },
-            { label: "Active", value: subscriptions.filter(s => s.status === "active").length },
+            { label: "Active", value: subscriptions.filter((s: Subscription) => s.status === "active").length },
             { label: "Team Members", value: initialTeamMembers.length },
             { label: "Unread Alerts", value: unreadCount },
           ].map(({ label, value }) => (
@@ -181,7 +211,7 @@ export default function DashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {subscriptions.map(sub => (
+                    {subscriptions.map((sub: Subscription) => (
                       <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-gray-900">{sub.name}</td>
                         <td className="px-6 py-4 text-gray-600 capitalize">{sub.category}</td>
@@ -203,7 +233,7 @@ export default function DashboardClient({
 
               {/* Mobile cards — hidden on sm+ */}
               <ul className="sm:hidden divide-y divide-gray-100">
-                {subscriptions.map(sub => (
+                {subscriptions.map((sub: Subscription) => (
                   <li key={sub.id} className="px-4 py-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-medium text-gray-900">{sub.name}</span>

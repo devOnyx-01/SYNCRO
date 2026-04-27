@@ -74,7 +74,6 @@ const envSchema = z.object({
 
   // Gemini LLM (optional — enables AI fallback for email parsing)
   GEMINI_API_KEY: z.string().optional(),
-
   // Soroban event indexer (optional)
   INDEXER_POLL_INTERVAL_MS: z.string().optional(),
   INDEXER_BATCH_SIZE: z.string().optional(),

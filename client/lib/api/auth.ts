@@ -53,7 +53,6 @@ export async function requireAuth(request: NextRequest) {
   return user
 }
 
-<<<<<<< HEAD
 export type UserRole = 'owner' | 'admin' | 'member' | 'viewer' | 'user'
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {

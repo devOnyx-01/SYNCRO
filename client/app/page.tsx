@@ -2,6 +2,11 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { AppClient } from "@/components/app/app-client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+    fetchPriceChanges,
+    fetchConsolidationSuggestions,
+    filterDismissedSuggestions
+} from "@/lib/dashboard-data";
 
 // Helper to transform DB subscription (snake_case) to app format (camelCase)
 function transformSubscription(dbSub: any): any {
@@ -56,7 +61,13 @@ async function getInitialData() {
         }
 
         // Fetch real data from database
-        const [subscriptionsResult, emailAccountsResult, paymentsResult] = await Promise.all([
+        const [
+            subscriptionsResult,
+            emailAccountsResult,
+            paymentsResult,
+            priceChanges,
+            rawSuggestions
+        ] = await Promise.all([
             supabase
                 .from("subscriptions")
                 .select("*")
@@ -68,6 +79,8 @@ async function getInitialData() {
                 .select("*")
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false }),
+            fetchPriceChanges(user.id),
+            fetchConsolidationSuggestions(user.id),
         ]);
 
         const subscriptions =
@@ -75,15 +88,33 @@ async function getInitialData() {
         const emailAccounts = emailAccountsResult.data || [];
         const payments = paymentsResult.data || [];
 
+        // Filter out dismissed suggestions
+        const consolidationSuggestions = await filterDismissedSuggestions(
+            user.id,
+            rawSuggestions
+        );
+
+        console.log('[getInitialData] Data fetched successfully:', {
+            subscriptions: subscriptions.length,
+            emailAccounts: emailAccounts.length,
+            payments: payments.length,
+            priceChanges: priceChanges.length,
+            consolidationSuggestions: consolidationSuggestions.length,
+        });
+
         return {
             subscriptions,
             emailAccounts,
             payments,
-            priceChanges: [], // TODO: Fetch from database
-            consolidationSuggestions: [], // TODO: Fetch from database
+            priceChanges,
+            consolidationSuggestions,
         };
     } catch (error) {
-        console.error("Error fetching initial data:", error);
+        console.error("[getInitialData] Error fetching initial data:", {
+            error,
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+        });
         // Fallback to empty data on error
         return {
             subscriptions: [],

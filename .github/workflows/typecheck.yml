@@ -31,13 +31,10 @@ jobs:
         working-directory: client
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-          cache-dependency-path: client/pnpm-lock.yaml
-      - run: pnpm install --no-frozen-lockfile
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
       - run: npx tsc --noEmit

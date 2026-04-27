@@ -92,21 +92,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-          cache-dependency-path: client/pnpm-lock.yaml
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
 
       - name: Install client dependencies
         working-directory: client
-        run: pnpm install --no-frozen-lockfile
+        run: npm ci
 
       - name: Build client
         working-directory: client
@@ -117,7 +112,7 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
-        run: pnpm run build
+        run: npm run build
 
   # ──────────────────────────────────────────────
   # Job 4: SDK — install, build, test

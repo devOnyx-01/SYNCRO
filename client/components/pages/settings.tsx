@@ -12,9 +12,12 @@ import {
   DollarSign,
   Users,
   Building2,
+  Wallet,
+  CheckCircle,
 } from "lucide-react"
 import { useState } from "react"
 import { type Currency, CURRENCY_NAMES, CURRENCY_SYMBOLS } from "@/lib/currency-utils"
+import VerifyWalletModal from "@/components/modals/verify-wallet-modal"
 
 interface SettingsPageProps {
   currentPlan: string
@@ -58,6 +61,8 @@ export default function SettingsPage({
   })
 
   const [showAddEmail, setShowAddEmail] = useState(false)
+  const [showVerifyWallet, setShowVerifyWallet] = useState(false)
+  const [verifiedWallet, setVerifiedWallet] = useState<string | null>(null)
   const [emailAccounts, setEmailAccounts] = useState([
     {
       id: 1,
@@ -221,6 +226,22 @@ export default function SettingsPage({
   }
 
   const workDomains = [...new Set(emailAccounts.filter((e) => e.isWorkEmail).map((e) => e.domain))]
+
+  const handleWalletVerified = (publicKey: string) => {
+    setVerifiedWallet(publicKey)
+    // Optionally save to backend or local storage
+    localStorage.setItem("verified_stellar_wallet", publicKey)
+  }
+
+  const handleDisconnectWallet = () => {
+    const confirmDisconnect = window.confirm(
+      "Are you sure you want to disconnect your Stellar wallet? You'll need to verify it again to reconnect."
+    )
+    if (confirmDisconnect) {
+      setVerifiedWallet(null)
+      localStorage.removeItem("verified_stellar_wallet")
+    }
+  }
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -710,6 +731,80 @@ export default function SettingsPage({
           ))}
         </div>
       </div>
+
+      {/* Stellar Wallet Verification */}
+      <div className={`border rounded-xl p-6 ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={`text-lg font-semibold flex items-center gap-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
+            <Wallet className="w-5 h-5" />
+            Stellar Wallet
+          </h3>
+          {verifiedWallet && (
+            <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-100 text-green-700 text-sm font-medium">
+              <CheckCircle className="w-4 h-4" />
+              Verified
+            </span>
+          )}
+        </div>
+
+        <p className={`text-sm mb-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          Link your Stellar wallet to enable blockchain-based payments and features. This is a non-custodial
+          integration - we never have access to your private keys.
+        </p>
+
+        {verifiedWallet ? (
+          <div className={`p-4 rounded-lg ${darkMode ? "bg-gray-800" : "bg-gray-50"}`}>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className={`text-sm font-medium mb-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  Connected Wallet
+                </p>
+                <p className={`text-sm font-mono ${darkMode ? "text-gray-400" : "text-gray-600"} break-all`}>
+                  {verifiedWallet}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="flex items-center gap-1 text-xs text-green-600">
+                    <CheckCircle className="w-3 h-3" />
+                    Ownership Verified
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleDisconnectWallet}
+                className="ml-4 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowVerifyWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#007A5C] text-white rounded-lg text-sm font-medium hover:bg-[#007A5C]/90"
+            >
+              <Wallet className="w-4 h-4" />
+              Link & Verify Wallet
+            </button>
+          </div>
+        )}
+
+        <div className={`mt-4 p-3 rounded-lg ${darkMode ? "bg-blue-900/20 border border-blue-800" : "bg-blue-50 border border-blue-200"}`}>
+          <p className={`text-xs ${darkMode ? "text-blue-300" : "text-blue-800"}`}>
+            <strong>Non-Custodial:</strong> You sign a message with Freighter to prove ownership. We never access
+            your private keys or funds.
+          </p>
+        </div>
+      </div>
+
+      {showVerifyWallet && (
+        <VerifyWalletModal
+          isOpen={showVerifyWallet}
+          onClose={() => setShowVerifyWallet(false)}
+          onVerified={handleWalletVerified}
+          darkMode={darkMode}
+        />
+      )}
 
       {showTeamUpgrade && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

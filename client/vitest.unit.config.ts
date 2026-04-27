@@ -1,9 +1,3 @@
-/**
- * Vitest config for pure unit tests (no browser, no Storybook).
- * Run with: npx vitest --config vitest.unit.config.ts --run
- *
- * Kept separate from vitest.config.ts which is wired to Storybook browser tests.
- */
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vitest/config"
@@ -20,10 +14,15 @@ export default defineConfig({
     },
   },
   test: {
-    name: "unit",
+    globals: true,
     environment: "node",
-    include: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
+    include: [
+      "app/**/*.test.ts",
+      "**/__tests__/**/*.test.ts",
+      "**/__tests__/**/*.test.tsx",
+    ],
     exclude: ["node_modules", ".next"],
+    watch: false,
     coverage: {
       provider: "v8",
       include: ["lib/**/*.ts"],

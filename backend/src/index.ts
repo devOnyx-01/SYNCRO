@@ -51,6 +51,7 @@ import { CryptoRateProvider } from './services/exchange-rate/crypto-provider';
 import { monitoringService } from './services/monitoring-service';
 import { healthService } from './services/health-service';
 import { eventListener } from './services/event-listener';
+import { startIndexer, stopIndexer } from './blockchain/indexer';
 import { expiryService } from './services/expiry-service';
 import { authenticate } from './middleware/auth'
 import { adminAuth } from './middleware/admin';
@@ -294,6 +295,7 @@ const server = app.listen(PORT, async () => {
   }
 
   scheduleAutoResume();
+  void startIndexer();
 });
 
 // Graceful shutdown
@@ -301,6 +303,7 @@ const shutdown = () => {
   logger.info('Shutting down gracefully');
   schedulerService.stop();
   eventListener.stop();
+  stopIndexer();
   server.close(() => {
     logger.info('Server closed');
     process.exit(0);

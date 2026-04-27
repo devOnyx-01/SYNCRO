@@ -56,6 +56,7 @@ export function useSubscriptions({
           category: dbSub.category,
           price: dbSub.price,
           icon: dbSub.icon || "🔗",
+          provider: dbSub.provider ?? undefined,
           renewsIn: dbSub.renews_in || dbSub.renewsIn || 30,
           status: dbSub.status,
           color: dbSub.color || "#000000",

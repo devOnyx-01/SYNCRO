@@ -21,6 +21,7 @@ export type SubscriptionStatus = 'active' | 'cancelled' | 'paused' | 'trial' | '
 export interface Subscription {
   id: string;
   name: string;
+  provider?: string;
   price: number;
   billingCycle: BillingCycle;
   renewalUrl?: string;

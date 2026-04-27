@@ -35,6 +35,7 @@ import complianceRoutes from './routes/compliance';
 import tagsRoutes from './routes/tags';
 import userRoutes from './routes/user';
 import userPreferencesRoutes from './routes/user-preferences';
+import reminderSettingsRoutes from './routes/reminder-settings';
 import apiKeysRoutes from './routes/api-keys';
 import digestRoutes from './routes/digest';
 import mfaRoutes from './routes/mfa';
@@ -52,6 +53,7 @@ import { CryptoRateProvider } from './services/exchange-rate/crypto-provider';
 import { monitoringService } from './services/monitoring-service';
 import { healthService } from './services/health-service';
 import { eventListener } from './services/event-listener';
+import { startIndexer, stopIndexer } from './blockchain/indexer';
 import { expiryService } from './services/expiry-service';
 import { authenticate } from './middleware/auth'
 import { adminAuth } from './middleware/admin';
@@ -133,6 +135,7 @@ app.use('/api/compliance', complianceRoutes);
 app.use('/api/tags', tagsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/user-preferences', authenticate, userPreferencesRoutes);
+app.use('/api/reminder-settings', authenticate, reminderSettingsRoutes);
 app.use('/api/digest', digestRoutes);
 app.use('/api/mfa', mfaRoutes);
 app.use('/api/notifications/push', pushNotificationRoutes);
@@ -299,6 +302,7 @@ const server = app.listen(PORT, async () => {
   scheduleAutoResume();
   startCspMonitoringJobs();
   logger.info('CSP monitoring jobs scheduled');
+  void startIndexer();
 });
 
 // Graceful shutdown
@@ -307,6 +311,7 @@ const shutdown = () => {
   schedulerService.stop();
   eventListener.stop();
   stopCspMonitoringJobs();
+  stopIndexer();
   server.close(() => {
     logger.info('Server closed');
     process.exit(0);

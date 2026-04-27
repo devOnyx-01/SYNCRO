@@ -36,7 +36,6 @@ const envSchema = z.object({
   // Payment providers (optional)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  PAYSTACK_SECRET_KEY: z.string().optional(),
 
   // Google / Gmail (optional)
   GOOGLE_CLIENT_ID: z.string().optional(),

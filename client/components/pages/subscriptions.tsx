@@ -86,6 +86,8 @@ export default function SubscriptionsPage({
   onImportComplete,
   onPause,
   onResume,
+  onCancelTrial,
+  onConvertTrial,
 }: SubscriptionsPageProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -823,6 +825,8 @@ export default function SubscriptionsPage({
                     )}
                     onPause={onPause}
                     onResume={onResume}
+                    onCancelTrial={onCancelTrial}
+                    onConvertTrial={onConvertTrial}
                   />
                 </ErrorBoundary>
               )}
@@ -856,6 +860,8 @@ export default function SubscriptionsPage({
                     )}
                     onPause={onPause}
                     onResume={onResume}
+                    onCancelTrial={onCancelTrial}
+                    onConvertTrial={onConvertTrial}
                   />
                 </ErrorBoundary>
               ))}
@@ -1028,6 +1034,8 @@ export function SubscriptionCard({
   guide,
   onPause,
   onResume,
+  onCancelTrial,
+  onConvertTrial,
 }: SubscriptionCardProps) {
   const isPaused = sub.status === "paused";
 

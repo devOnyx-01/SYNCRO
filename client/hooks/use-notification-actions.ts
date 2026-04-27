@@ -2,6 +2,10 @@
 
 import { useCallback } from "react";
 import type { Subscription } from "@/lib/supabase/subscriptions";
+import type {
+  NotificationActionHandler,
+  NotificationDuplicateInfo,
+} from "@/lib/notification-types";
 
 interface UseNotificationActionsProps {
   subscriptions: Subscription[];
@@ -22,13 +26,13 @@ export function useNotificationActions({
   onToast,
   onShowInsightsPage,
 }: UseNotificationActionsProps) {
-  const handleResolveNotificationAction = useCallback(
-    (action: string, data: any) => {
+  const handleResolveNotificationAction = useCallback<NotificationActionHandler>(
+    (action, data) => {
       console.log("[v0] Resolving notification action:", action, data);
 
       switch (action) {
         case "resolve_duplicate":
-          const duplicateInfo = data;
+          const duplicateInfo = data as NotificationDuplicateInfo;
           const subsToKeep = duplicateInfo.subscriptions[0];
           const subsToRemove = duplicateInfo.subscriptions.slice(1);
 
